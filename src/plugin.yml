@@ -1,0 +1,6 @@
+name: Chicken
+version: 0.1
+main: me.kei.takasou.chicken.TakasouChicken
+author: Kei
+description: this plugin make of kun server
+api-version: 1.15
