@@ -81,47 +81,29 @@ public class TakasouChickenTask extends BukkitRunnable {
                                     @Override
                                     public void run() {
                                         List<Location> locations = calc(loc2, p.getEyeLocation().clone().add(0, -1, 0), 0.2);
-                                        Location l = locations.get(1);
+                                        Location l = locations.get(0);
                                         l.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, l, 1);
-                                        if (locations.size() > 1) {
-                                            l = locations.get(2);
+                                        if (locations.size() >= 2) {
+                                            l = locations.get(1);
                                             l.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, l, 1);
                                         }
                                         loc2 = l;
+                                        if (locations.size() < 1) {
+                                            this.cancel();
+                                        }
                                         if (l.getBlockX() == p.getLocation().getBlockX() && l.getBlockZ() == p.getLocation().getBlockZ() && l.getBlockY() == p.getLocation().getBlockY()) {
                                             this.cancel();
                                         }
                                     }
                                 }.runTaskTimer(this.plugin, 1, 1);
 
-                                List<Location> leLocations = calc(p.getLocation(), le.getLocation(), 1);
-                                leLocations.remove(0);
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        Location l = leLocations.get(0);
-                                        //l.getWorld().spawnEntity(l, EntityType.EVOKER_FANGS).setSilent(true);
-                                        leLocations.remove(0);
-                                        if (leLocations.size() < 1) {
-                                            this.cancel();
-                                        }
-                                    }
-                                }.runTaskTimer(this.plugin, 1, 1);
-
-
-                                int power = 0;
-                                if (p.getPotionEffect(PotionEffectType.HEALTH_BOOST) != null) {
-                                    power = p.getPotionEffect(PotionEffectType.HEALTH_BOOST).getAmplifier() + 1;
-                                    p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
-                                    p.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
+                                int kill = 0;
+                                if(killed.containsKey(p.getName())) {
+                                    kill = killed.get(p.getName());
                                 }
-
-                                if (power > 127) {
-                                    power = 127;
-                                }
-
-                                p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, Integer.MAX_VALUE, power, true));
-                                p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, Integer.MAX_VALUE, power, true));
+                                int i = (int) Math.floor(kill / 100);
+                                p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, 20*300, i, true));
+                                p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 20*300, i, true));
 
                                 if (killed.containsKey(s)) {
                                     killed.replace(s, killed.get(s) + 1);
@@ -129,7 +111,8 @@ public class TakasouChickenTask extends BukkitRunnable {
                                     killed.put(s, 1);
                                 }
 
-                                le.damage(10000, Bukkit.getPlayer(s));
+                                le.damage(1000, p);
+                                le.setKiller(p);
                             }
                         }
                     }
@@ -142,10 +125,11 @@ public class TakasouChickenTask extends BukkitRunnable {
             int kill = entry.getValue();
 
             BossBar boss;
+            int i = (int) Math.floor(kill / 100) + 1;
             if (bar.containsKey(name)) {
                 boss = bar.get(name);
             } else {
-                boss = Bukkit.createBossBar(name + "が鶏を吸収した数: " + kill, BarColor.WHITE, BarStyle.SEGMENTED_10);
+                boss = Bukkit.createBossBar(name + "が鶏を吸収した数: " + kill + " Lv: " + i, BarColor.WHITE, BarStyle.SEGMENTED_10);
                 bar.put(name, boss);
             }
 
@@ -168,7 +152,7 @@ public class TakasouChickenTask extends BukkitRunnable {
                 color = BarColor.RED;
             }
 
-            boss.setTitle(name + "が鳥を吸収した数: " + kill);
+            boss.setTitle(name + "が鶏を吸収した数: " + kill + " Lv: " + i);
             boss.setColor(color);
 
             double count100 = (double) Math.floor(kill / 100);
